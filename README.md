@@ -1,12 +1,9 @@
-# simple
+# WASM Tic Tac Toe
 Simple Vugu Example
 
 You can get started with:
 
 ```sh
-go get -u github.com/vugu/vgrun
-vgrun -new-from-example=simple myexample
-cd myexample
 vgrun devserver.go
 ```
 

@@ -1,5 +1,5 @@
 # WASM Tic Tac Toe
-Simple Vugu Example
+Simple [Vugu](https://github.com/vugu/vugu) Example
 
 You can get started with:
 

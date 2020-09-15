@@ -1,30 +1,43 @@
 <div>
     <main role="main" class="container text-center">
         <div class="mt-5">
-            <h1>Welcome to WASM Tic Tac Toe</h1>
+            <h1>WASM Tic Tac Toe</h1>
             <div vg-if='!c.GameStarted'>
                 <button @click="c.StartGame()">Start Game</button>
             </div>
         </div>
-        <div vg-if="c.GameStarted">
-        <table>
-            <tr>
-                <td @click="c.handleBoardClick(0, 0)" vg-content="c.Board[0][0]"></td>
-                <td class="vert"></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td class="hori"></td>
-                <td class="vert hori"></td>
-                <td class="hori"></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td class="vert"></td>
-                <td></td>
-            </tr>
-        </table>
+        <div vg-if="c.GameFinished">
+            <div vg-if='c.Winner == ""'>
+                <p>No winner :(</p>
+            </div>
+            <div vg-if='c.Winner != ""'>
+                Winner is <p vg-content="c.Winner">
+            </div>
+            <button @click="c.StartGame()">Restart Game</button>
         </div>
+        <div vg-if="c.GameStarted">
+            <div vg-if="!c.GameFinished">
+                <p vg-if="c.PlayerTurnX"> Turn: X</p>
+                <p vg-if="!c.PlayerTurnX"> Turn: O</p>
+            </div>
+            <table>
+                <tr>
+                    <td @click="c.handleBoardClick(0, 0)" vg-content="c.Board[0][0]"></td>
+                    <td @click="c.handleBoardClick(0, 1)" vg-content="c.Board[0][1]" class="vert"></td>
+                    <td @click="c.handleBoardClick(0, 2)" vg-content="c.Board[0][2]"></td>
+                </tr>
+                <tr>
+                    <td @click="c.handleBoardClick(1, 0)" vg-content="c.Board[1][0]" class="hori"></td>
+                    <td @click="c.handleBoardClick(1, 1)" vg-content="c.Board[1][1]" class="vert hori"></td>
+                    <td @click="c.handleBoardClick(1, 2)" vg-content="c.Board[1][2]" class="hori"></td>
+                </tr>
+                <tr>
+                    <td @click="c.handleBoardClick(2, 0)" vg-content="c.Board[2][0]"></td>
+                    <td @click="c.handleBoardClick(2, 1)" vg-content="c.Board[2][1]" class="vert"></td>
+                    <td @click="c.handleBoardClick(2, 2)" vg-content="c.Board[2][2]"></td>
+                </tr>
+            </table>
+            </div>
     </main>
 </div>
 
@@ -33,14 +46,22 @@
 
 import "fmt"
 
+const PlayerX = "X"
+const PlayerO = "O"
+
 type Root struct {
     GameStarted bool `vugu:"data"`
+    GameFinished bool `vugu:"data"`
+    Winner string `vugu:"data"`
+    PlayerTurnX bool `vugu:"data"`
     Board [][]string `vugu:"data"`
 }
 
 
 func (r *Root) StartGame() {
     r.GameStarted = true
+    r.GameFinished = false
+    r.Winner = ""
     r.Board = make([][]string, 3)
     for i:= 0; i < 3; i++ {
         r.Board[i] = make([]string, 3)
@@ -48,7 +69,75 @@ func (r *Root) StartGame() {
 }
 
 func (r *Root) handleBoardClick(row, col int) {
-    fmt.Println(row, col)
+    if r.GameFinished {
+        return
+    }
+
+    // already occupied
+    if r.Board[row][col] != "" {
+        return
+    }
+
+    if r.PlayerTurnX {
+        r.Board[row][col] = PlayerX
+    } else {
+        r.Board[row][col] = PlayerO
+    }
+    r.PlayerTurnX = !r.PlayerTurnX
+    r.checkWinner()
+}
+
+func (r *Root) checkWinner() {
+
+    // check rows
+    for i := 0; i< 3; i++ {
+        if r.Board[i][0] == "" {
+            continue
+        }
+        if r.Board[i][0] == r.Board[i][1] && r.Board[i][1] == r.Board[i][2] {
+            r.GameFinished = true
+            r.Winner = r.Board[i][0]
+        }
+    }
+
+    // check cols
+    for i := 0; i< 3; i++ {
+        if r.Board[0][i] == "" {
+            continue
+        }
+        if r.Board[0][i] == r.Board[1][i] && r.Board[1][i] == r.Board[2][i] {
+            r.GameFinished = true
+            r.Winner = r.Board[0][i]
+        }
+    }
+
+    // check diagonals
+    if r.Board[0][0] != "" &&
+        r.Board[0][0] == r.Board[1][1] &&
+        r.Board[1][1] == r.Board[2][2] {
+            r.GameFinished = true
+            r.Winner = r.Board[0][0]
+        }
+    if r.Board[0][2] != "" &&
+        r.Board[0][2] == r.Board[1][1] &&
+        r.Board[1][1] == r.Board[2][0] {
+            r.GameFinished = true
+            r.Winner = r.Board[0][2]
+        }
+
+    fmt.Println("checking cells")
+    // check all cells are not empty
+    foundEmpty := false
+    for i := 0; i < 3; i++ {
+        for j := 0; j < 3; j++ {
+            if r.Board[i][j] == "" {
+                foundEmpty = true
+            }
+        }
+    }
+    if !foundEmpty {
+        r.GameFinished = true
+    }
 }
 
     
